@@ -1,0 +1,82 @@
+﻿@page "/"
+@inject IUnitOfWork Services
+@rendermode InteractiveServer
+
+<PageTitle>Customers</PageTitle>
+
+<h1>Customer List</h1>
+
+@if (Customers == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="mt-2">
+        <NavLink class="btn btn-primary" href="/editcustomer">Add Customer</NavLink>
+    </div>
+
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Company Name</th>
+                <th>Email Address</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var customer in Customers)
+            {
+                <tr>
+                    <td>@customer.CustomerID</td>
+                    <td>@customer.FirstName @customer.LastName</td>
+                    <td>@customer.Title</td>
+                    <td>@customer.EmailAddress</td>
+                    <td>
+                        <div class="d-flex">
+                            <a class="btn btn-primary me-2" role="button" href="@EditCustomer(customer.CustomerID)">
+                               <i class="bi bi-pencil"></i>
+                            </a>
+
+                            <a class="btn btn-secondary me-2" role="button" href="@DetailCustomer(customer.CustomerID)">
+                                <i class="bi bi-card-list"></i>
+                            </a>
+                            <button class="btn btn-danger"
+                                    @onclick="@(async () => await DeleteCustomerAsync(customer.CustomerID))"
+                                    title="Delete Customer">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+
+@code {
+    List<Customer> Customers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Customers = await Services.CustomerService.GetCustomersAsync();
+    }
+
+    private string EditCustomer(int id) => $"/editcustomer/{id}";
+
+    private string DetailCustomer(int id) => $"/cusomterdetails/{id}";
+
+    private async Task DeleteCustomerAsync(int customerId)
+    {
+        await Services.CustomerService.DeleteCustomerAsync(customerId);
+        Customers = await Services.CustomerService.GetCustomersAsync();
+     
+        StateHasChanged();
+    }
+
+}

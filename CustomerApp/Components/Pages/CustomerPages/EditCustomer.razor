@@ -1,0 +1,164 @@
+﻿@page "/editcustomer"
+@page "/editcustomer/{Id:int}"
+
+@inject NavigationManager NavigationManager
+@inject IUnitOfWork Services
+
+@rendermode InteractiveServer
+
+<h3>Edit Customer</h3>
+
+@if (loading)
+{
+    <p><em>Loading...</em></p>
+}
+
+else
+{
+    <EditForm Model="@Customer" OnValidSubmit="@HandleSubmit">
+        <DataAnnotationsValidator />
+
+        <div class="form-group">
+            <label for="NameStyle">Name Style</label>
+            <input type="checkbox" id="NameStyle" @bind="@Customer.NameStyle" />
+        </div>
+
+        <div class="form-group">
+            <label for="Title">Title</label>
+            <input type="text" id="Title" class="form-control" @bind="@Customer.Title" />
+        </div>
+
+        <div class="form-group">
+            <label for="FirstName">First Name</label>
+            <input type="text" id="FirstName" class="form-control" @bind="@Customer.FirstName" />
+        </div>
+
+        <div class="form-group">
+            <label for="MiddleName">Middle Name</label>
+            <input type="text" id="MiddleName" class="form-control" @bind="@Customer.MiddleName" />
+        </div>
+
+        <div class="form-group">
+            <label for="LastName">Last Name</label>
+            <input type="text" id="LastName" class="form-control" @bind="@Customer.LastName" />
+        </div>
+
+        <div class="form-group">
+            <label for="Suffix">Suffix</label>
+            <input type="text" id="Suffix" class="form-control" @bind="@Customer.Suffix" />
+        </div>
+
+        <div class="form-group">
+            <label for="CompanyName">Company Name</label>
+            <input type="text" id="CompanyName" class="form-control" @bind="@Customer.CompanyName" />
+        </div>
+
+        <div class="form-group">
+            <label for="SalesPerson">Sales Person</label>
+            <input type="text" id="SalesPerson" class="form-control" @bind="@Customer.SalesPerson" />
+        </div>
+
+        <div class="form-group">
+            <label for="EmailAddress">Email Address</label>
+            <input type="email" id="EmailAddress" class="form-control" @bind="@Customer.EmailAddress" />
+        </div>
+
+        <div class="form-group">
+            <label for="Phone">Phone</label>
+            <input type="tel" id="Phone" class="form-control" @bind="@Customer.Phone" />
+        </div>
+
+        <div class="form-group">
+            <label for="PasswordHash">Password Hash</label>
+            <input type="password" id="PasswordHash" class="form-control" @bind="@Customer.PasswordHash" />
+        </div>
+
+        <div class="form-group">
+            <label for="PasswordSalt">Password Salt</label>
+            <input type="password" id="PasswordSalt" class="form-control" @bind="@Customer.PasswordSalt" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save</button>
+    </EditForm>
+}
+
+@code {
+    private bool loading = true;
+
+    [Parameter]
+    public int? Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private Customer? Customer { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Customer != null)
+        {
+            return;
+        }
+
+        if (Id != null)
+        {
+            try
+            {
+                Customer = await Services.CustomerService.GetCustomerAsync(Id.Value);
+
+            }
+            catch (ArgumentNullException)
+            {
+
+            }
+        }
+
+        else
+        {
+            Customer = new Customer()
+                {
+                    NameStyle = false,  
+                    Title = string.Empty,
+                    FirstName = string.Empty,
+                    MiddleName = string.Empty,
+                    LastName = string.Empty,
+                    Suffix = string.Empty,
+                    CompanyName = string.Empty,
+                    SalesPerson = string.Empty,
+                    EmailAddress = string.Empty,
+                    Phone = string.Empty,
+                    PasswordHash = string.Empty,
+                    PasswordSalt = string.Empty,
+                    rowguid = Guid.Empty,  
+                    ModifiedDate = DateTime.UtcNow.Date
+                };
+        }
+
+        loading = false;
+    }
+
+    private async Task HandleSubmit()
+    {
+        ArgumentNullException.ThrowIfNull(Customer);
+
+        try
+        {
+            if (Id == null)
+            {
+                await Services.CustomerService.AddCustomersync(Customer);
+                Console.WriteLine("Device added successfully.");
+            }
+            else
+            {
+                Customer.CustomerID = Id.Value;
+                await Services.CustomerService.UpdateCustomerAsync(Customer);
+                Console.WriteLine("Device updated successfully.");
+            }
+
+            NavigationManager.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error occurred: {ex.Message}");
+        }
+    }
+
+}
